@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String @unique
+  password  String
+  roles Role[]
+  status    Status @default(ACTIVE)
+}
+model Role{
+  id String @id @default(uuid())
+  name String
+  users User[]
+}
+model Category{
+  id String @id @default(uuid())
+  name String
+  products Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id           String       @id @default(uuid())
+  name         String       @unique
+  price        Int
+  sale         Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  availability Availability
+  description  Description?
+  reviews      Review[]
+  tags         Tag[]        @relation("ProductToTag")
+  categoryId String? @unique
+  category Category? @relation(fields: [categoryId],references: [id])
+}
+
+model Description {
+  id        String  @id @default(uuid())
+  content   String
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        String  @id @default(uuid())
+  title     String
+  content   String
+  rating    Float
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId], map: "Review_productId_fkey")
+}
+
+model Tag {
+  id       String    @id @default(uuid())
+  content  String
+  products Product[] @relation("ProductToTag")
+}
+
+enum Availability {
+  AVAILABLE
+  NOT_AVAILABLE
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
